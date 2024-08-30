@@ -1,10 +1,9 @@
-name: Deploy data pipeline
+name: Deploy data pipeline to prod
 
-# Action will run on pushes to selected branches
+# Controls when the action will run.
 on:
   push:
     branches:
-      - dev
       - main
 
   # Allows you to run this workflow manually from the Actions tab
@@ -14,38 +13,25 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    env:
-      REPO_NAME: "dominion21/tutorial"
-      # Read connection secrets
-      SNOWFLAKE_CONNECTIONS_DEFAULT_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-      SNOWFLAKE_CONNECTIONS_DEFAULT_USER: ${{ secrets.SNOWFLAKE_USER }}
-      SNOWFLAKE_CONNECTIONS_DEFAULT_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
-
     steps:
-      # Checkout step is necessary if you want to use a config file from your repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Install Snowflake CLI GitHub Action and point to config file
-      - uses: Snowflake-Labs/snowflake-cli-action@v1
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
         with:
-          cli-version: "latest"
-          default-config-file-path: "config.toml"
+          python-version: '3.10'
 
-      # Update Snowflake's copy of the repository
-      - name: Fetch repository changes
-        run: snow git fetch "${REPO_NAME}"
+      - name: Install Python packages
+        run: pip install -r requirements.txt
 
-      # Deploy pipeline with branch specific parameters
-      - name: Deploy data pipeline to ${{ github.ref_name }}
+      - name: Deploy data pipeline
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE}}
         run: |
-          BRANCH_NAME=${{ github.ref_name }}
-          if [ "${BRANCH_NAME}" == "main" ]; then
-            RETENTION_TIME=1
-          elif [ "${BRANCH_NAME}" == "dev" ]; then
-            RETENTION_TIME=0
-          fi
-          snow git execute \
-            "@${REPO_NAME}/branches/${BRANCH_NAME}/deploy_parametrized_pipeline.sql" \
-            -D "environment='${BRANCH_NAME}'" \
-            -D "retention_time=${RETENTION_TIME}"
+          snow sql -q " alter git repository tutorial fetch" --temporary-connection --account $SNOWFLAKE_ACCOUNT --user $SNOWFLAKE_USER --role $SNOWFLAKE_ROLE --warehouse $SNOWFLAKE_WAREHOUSE
+          snow sql -q "EXECUTE IMMEDIATE FROM @tutorial/branches/main/deploy_parametrized_pipeline.sql USING (environment => 'prod', retention_time => 1)" --temporary-connection --account $SNOWFLAKE_ACCOUNT --user $SNOWFLAKE_USER --role $SNOWFLAKE_ROLE --warehouse $SNOWFLAKE_WAREHOUSE
