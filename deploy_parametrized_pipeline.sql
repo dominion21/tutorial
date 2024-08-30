@@ -1,3 +1,3 @@
-execute immediate from 'steps/01_setup_snowflake.sql' using (environment => '{{environment}}');
+execute immediate from 'tutorial/branches/main/01_setup_snowflake.sql' using (environment => '{{environment}}');
 
 
