@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      REPO_NAME: "dominion21.public.tutorial"
+      REPO_NAME: "raw.git.tutorial"
       # Read connection secrets
       SNOWFLAKE_CONNECTIONS_DEFAULT_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
       SNOWFLAKE_CONNECTIONS_DEFAULT_USER: ${{ secrets.SNOWFLAKE_USER }}
