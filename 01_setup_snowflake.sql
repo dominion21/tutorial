@@ -4,8 +4,8 @@ CREATE WAREHOUSE IF NOT EXISTS DEVELOPER WAREHOUSE_SIZE = XSMALL, AUTO_SUSPEND =
 
 
 -- Separate database for git repository
-CREATE DATABASE IF NOT EXISTS RAW;
-
+CREATE OR REPLACE DATABASE RAW;
+use database raw;
 
 -- API integration is needed for GitHub integration
 CREATE OR REPLACE API INTEGRATION git_api_integration
@@ -23,7 +23,7 @@ CREATE OR REPLACE GIT REPOSITORY tutorial   --alter GIT REPOSITORY git_repo rena
 
 
 CREATE OR REPLACE DATABASE RAW_PROD;
-
+use database raw_prod;
 
 -- To monitor data pipeline's completion
 CREATE OR REPLACE NOTIFICATION INTEGRATION email_integration
