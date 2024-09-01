@@ -1,5 +1,5 @@
 use role accountadmin;
-use schema RAW_prod.gold;
+use schema nom.dbo;
 
 
 -- declarative target table of pipeline
