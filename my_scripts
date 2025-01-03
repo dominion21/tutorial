@@ -1,0 +1,4 @@
+CREATE OR ALTER TASK {{ environment }}.my_schema.my_task
+  WAREHOUSE = my_warehouse
+  SCHEDULE = '60 minute'
+  AS select pi();
